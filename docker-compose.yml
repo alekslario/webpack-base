@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  caddy:
+    image: caddy:2.6.2-alpine
+    restart: unless-stopped
+    command: caddy reverse-proxy --from https://dev.aleksandrslarionovs.com --to http://frontend:8080
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - caddy:/data
+    depends_on:
+      - frontend
+    networks:
+      - node-network
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    image: frontend
+    environment:
+      - NODE_ENV
+      - FIREBASE_API_KEY
+      - FIREBASE_AUTH_DOMAIN
+      - FIREBASE_DATABASE_URL
+      - FIREBASE_PROJECT_ID
+      - FIREBASE_STORAGE_BUCKET
+      - FIREBASE_MESSAGING_SENDER_ID
+      - FIREBASE_APP_ID
+    volumes:
+      - /usr/src/node-app/node_modules
+      - ./frontend:/usr/src/node-app
+    command: CMD tail -f /dev/null
+    networks:
+      - node-network
